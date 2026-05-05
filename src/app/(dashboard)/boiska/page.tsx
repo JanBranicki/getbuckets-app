@@ -129,13 +129,6 @@ export default function BoiskaPage() {
   defaultCenter={defaultCenter}
   defaultZoom={userPos ? 13 : 11}
   mapId="a051cd3bd5fc928553fa5458"
-  options={{
-    styles: undefined,
-    mapTypeControl: false,
-    streetViewControl: false,
-    fullscreenControl: false,
-    zoomControl: false,
-  }}
             style={{ width: '100%', height: '100%' }}
             gestureHandling="greedy"
             disableDefaultUI={true}
