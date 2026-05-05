@@ -23,6 +23,7 @@ export default function NowyEventPage() {
   const [maxGraczy, setMaxGraczy] = useState('10')
   const [widocznosc, setWidocznosc] = useState('publiczny')
   const [notatki, setNotatki] = useState('')
+  const [miasto, setMiasto] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -34,6 +35,21 @@ export default function NowyEventPage() {
       if (data) setBoiska(data)
     }
     load()
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const { latitude, longitude } = pos.coords
+        const res = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&language=pl`
+        )
+        const data = await res.json()
+        if (data.results?.[0]) {
+          const comp = data.results[0].address_components
+          const miasto = comp.find((c: any) => c.types.includes('locality'))?.long_name
+          if (miasto) setMiasto(miasto)
+        }
+      })
+    }
   }, [])
 
   async function handleSave() {
@@ -55,6 +71,7 @@ export default function NowyEventPage() {
       max_graczy: parseInt(maxGraczy),
       widocznosc,
       notatki: notatki || null,
+      miasto: miasto || null,
       organizator: user.id,
     }).select().single()
 
@@ -64,7 +81,6 @@ export default function NowyEventPage() {
       return
     }
 
-    // Organizator automatycznie dołącza do eventu
     await supabase.from('event_gracze').insert({
       event_id: data.id,
       gracz_id: user.id,
@@ -135,6 +151,13 @@ export default function NowyEventPage() {
             <option value="prywatny">Prywatny</option>
           </select>
         </div>
+      </div>
+
+      <div>
+        <label className="text-xs text-muted-foreground">Miasto</label>
+        <input value={miasto} onChange={e => setMiasto(e.target.value)}
+          placeholder="np. Warszawa"
+          className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1" />
       </div>
 
       <div>

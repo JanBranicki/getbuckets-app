@@ -24,7 +24,6 @@ export default function DashboardPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    // Pobierz lokalizację
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         pos => setLokalizacja({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
@@ -38,12 +37,12 @@ export default function DashboardPage() {
 
       const { data: profil } = await supabase
         .from('profiles')
-        .select('username')
+        .select('username, city')
         .eq('id', user.id)
         .single()
       if (profil) setUsername(profil.username)
 
-      const { data } = await supabase
+      let query = supabase
         .from('eventy')
         .select('*, boisko:boiska(nazwa, adres, lat, lng), organizator_profil:profiles!eventy_organizator_fkey(username)')
         .eq('widocznosc', 'publiczny')
@@ -52,6 +51,11 @@ export default function DashboardPage() {
         .order('data_czas', { ascending: true })
         .limit(10)
 
+      if (profil?.city) {
+        query = query.ilike('miasto', `%${profil.city}%`)
+      }
+
+      const { data } = await query
       if (data) setEventy(data)
       setLoading(false)
     }
