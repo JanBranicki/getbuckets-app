@@ -73,6 +73,12 @@ export default function EventDetailPage() {
     setGracze(prev => prev.map(g => g.id === graczId ? { ...g, status } : g))
   }
 
+  async function handleUsun() {
+    if (!confirm('Czy na pewno chcesz usunąć ten event?')) return
+    await supabase.from('eventy').delete().eq('id', id)
+    router.push('/eventy')
+  }
+
   function openMaps() {
     if (!event?.boisko) return
     window.open(`https://www.google.com/maps/search/?api=1&query=${event.boisko.lat},${event.boisko.lng}`, '_blank')
@@ -94,7 +100,14 @@ export default function EventDetailPage() {
 
   return (
     <div className="p-4 max-w-lg mx-auto space-y-5 pb-20">
-      <button onClick={() => router.back()} className="text-sm text-muted-foreground">← Wróć</button>
+      <div className="flex items-center justify-between">
+        <button onClick={() => router.back()} className="text-sm text-muted-foreground">← Wróć</button>
+        {jestemOrganizatorem && (
+          <button onClick={handleUsun} className="text-sm text-red-500 hover:underline">
+            Usuń event
+          </button>
+        )}
+      </div>
 
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">{event.tytul}</h1>
@@ -115,44 +128,46 @@ export default function EventDetailPage() {
         {event.notatki && <p className="text-sm text-muted-foreground pt-1">{event.notatki}</p>}
       </div>
 
-      {/* Zaakceptowani gracze */}
       <div className="space-y-2">
         <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
           Gracze ({zaakceptowani.length}/{event.max_graczy})
         </h2>
-        {zaakceptowani.length === 0
-          ? <p className="text-sm text-muted-foreground">Brak graczy.</p>
-          : (
-            <div className="border rounded-md divide-y">
-              {zaakceptowani.map(g => (
-                <div key={g.id} className="p-3 space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold">
-                      {g.profil?.username?.[0]?.toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{g.profil?.username}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {[g.profil?.position, g.profil?.city].filter(Boolean).join(' · ')}
-                      </p>
-                    </div>
+        {zaakceptowani.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Brak graczy.</p>
+        ) : (
+          <div className="border rounded-md divide-y">
+            {zaakceptowani.map(g => (
+              <div key={g.id} className="p-3 space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold">
+                    {g.profil?.username?.[0]?.toUpperCase()}
                   </div>
-                  {(g.profil?.wzrost || g.profil?.reka || g.profil?.liga || g.profil?.druzyna) && (
-                    <div className="text-xs text-muted-foreground pl-10 flex gap-2 flex-wrap">
-                      {g.profil.wzrost && <span>{g.profil.wzrost} cm</span>}
-                      {g.profil.reka && <span>{g.profil.reka}</span>}
-                      {g.profil.druzyna && <span>🏆 {g.profil.druzyna}</span>}
-                      {g.profil.liga && <span>🏅 {g.profil.liga}</span>}
-                    </div>
-                  )}
+                  <div>
+                    <p className="font-medium text-sm">
+                      {g.profil?.username}
+                      {g.gracz_id === event.organizator && (
+                        <span className="ml-1 text-xs text-muted-foreground font-normal">admin</span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {[g.profil?.position, g.profil?.city].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )
-        }
+                {(g.profil?.wzrost || g.profil?.reka || g.profil?.liga || g.profil?.druzyna) && (
+                  <div className="text-xs text-muted-foreground pl-10 flex gap-2 flex-wrap">
+                    {g.profil.wzrost && <span>{g.profil.wzrost} cm</span>}
+                    {g.profil.reka && <span>{g.profil.reka}</span>}
+                    {g.profil.druzyna && <span>🏆 {g.profil.druzyna}</span>}
+                    {g.profil.liga && <span>🏅 {g.profil.liga}</span>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Oczekujący — tylko dla organizatora */}
       {jestemOrganizatorem && oczekujacy.length > 0 && (
         <div className="space-y-2">
           <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
