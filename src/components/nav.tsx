@@ -27,7 +27,10 @@ export default function Nav() {
       {/* Desktop — boczny panel */}
       <aside className="hidden md:flex flex-col w-56 min-h-screen border-r bg-background p-4">
         <div className="mb-8">
-          <span className="text-xl font-bold">GetBuckets 🏀</span>
+          <div className="flex items-center gap-2">
+  <img src="/logo.svg" alt="GetBuckets" className="h-8 w-8" />
+  <span className="text-xl font-bold">GetBuckets</span>
+</div>
         </div>
         <nav className="flex flex-col gap-1 flex-1">
           {LINKS.map(link => (
