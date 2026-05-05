@@ -24,6 +24,7 @@ export default function BoiskaPage() {
   const [nawierzchnia, setNawierzchnia] = useState('')
   const [liczbaKoszy, setLiczbaKoszy] = useState('2')
   const [clickedPos, setClickedPos] = useState<{ lat: number; lng: number } | null>(null)
+  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -32,6 +33,14 @@ export default function BoiskaPage() {
       if (data) setBoiska(data)
     }
     load()
+
+    // Pobierz lokalizację użytkownika
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {}
+      )
+    }
   }, [])
 
   async function handleDodaj() {
@@ -58,6 +67,8 @@ export default function BoiskaPage() {
     }
   }
 
+  const defaultCenter = userPos ?? { lat: 52.2297, lng: 21.0122 }
+
   return (
     <div className="h-screen flex flex-col">
       <div className="p-4 border-b flex items-center justify-between">
@@ -65,8 +76,8 @@ export default function BoiskaPage() {
           <h1 className="text-xl font-bold">Boiska 🏀</h1>
           <p className="text-sm text-muted-foreground">
             {showForm && clickedPos
-              ? 'Kliknij na mapie żeby wybrać lokalizację, potem wypełnij formularz'
-              : 'Kliknij marker żeby zobaczyć szczegóły'}
+              ? 'Kliknij na mapie żeby wybrać lokalizację'
+              : `${boiska.length} boisk w bazie`}
           </p>
         </div>
         <Button onClick={() => { setShowForm(!showForm); setClickedPos(null) }} variant={showForm ? 'outline' : 'default'}>
@@ -115,10 +126,19 @@ export default function BoiskaPage() {
       <div className="flex-1">
         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY!}>
           <Map
-            defaultCenter={{ lat: 52.2297, lng: 21.0122 }}
-            defaultZoom={11}
-            mapId="getbuckets-map"
+  defaultCenter={defaultCenter}
+  defaultZoom={userPos ? 13 : 11}
+  mapId="a051cd3bd5fc928553fa5458"
+  options={{
+    styles: undefined,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+    zoomControl: false,
+  }}
             style={{ width: '100%', height: '100%' }}
+            gestureHandling="greedy"
+            disableDefaultUI={true}
             onClick={showForm ? (e) => {
               if (e.detail.latLng) setClickedPos({ lat: e.detail.latLng.lat, lng: e.detail.latLng.lng })
             } : undefined}
@@ -128,21 +148,32 @@ export default function BoiskaPage() {
                 key={boisko.id}
                 position={{ lat: boisko.lat, lng: boisko.lng }}
                 onClick={() => setSelected(boisko)}
-              />
+              >
+                <div className="text-2xl">🏀</div>
+              </AdvancedMarker>
             ))}
+
             {clickedPos && showForm && (
-              <AdvancedMarker position={clickedPos} />
+              <AdvancedMarker position={clickedPos}>
+                <div className="text-2xl">📍</div>
+              </AdvancedMarker>
             )}
+
             {selected && (
               <InfoWindow
                 position={{ lat: selected.lat, lng: selected.lng }}
                 onCloseClick={() => setSelected(null)}
               >
-                <div className="p-1 min-w-32">
+                <div className="p-1 min-w-36">
                   <p className="font-bold text-sm">{selected.nazwa}</p>
                   {selected.adres && <p className="text-xs text-gray-600">{selected.adres}</p>}
                   {selected.nawierzchnia && <p className="text-xs">Nawierzchnia: {selected.nawierzchnia}</p>}
                   {selected.liczba_koszy && <p className="text-xs">Kosze: {selected.liczba_koszy}</p>}
+                  <button
+                    onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${selected.lat},${selected.lng}`, '_blank')}
+                    className="text-xs text-blue-600 underline mt-1">
+                    Nawiguj →
+                  </button>
                 </div>
               </InfoWindow>
             )}
