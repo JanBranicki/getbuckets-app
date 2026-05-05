@@ -101,61 +101,73 @@ export default function EventDetailPage() {
   return (
     <div className="p-4 max-w-lg mx-auto space-y-5 pb-20">
       <div className="flex items-center justify-between">
-        <button onClick={() => router.back()} className="text-sm text-muted-foreground">← Wróć</button>
+        <button onClick={() => router.back()} className="text-sm" style={{ color: '#888888' }}>← Wróć</button>
         {jestemOrganizatorem && (
-          <button onClick={handleUsun} className="text-sm text-red-500 hover:underline">
-            Usuń event
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.push(`/eventy/${id}/edit`)}
+              className="text-sm hover:underline"
+              style={{ color: '#888888' }}>
+              Edytuj
+            </button>
+            <button onClick={handleUsun} className="text-sm hover:underline" style={{ color: '#EF4444' }}>
+              Usuń
+            </button>
+          </div>
         )}
-      </div>
-
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold">{event.tytul}</h1>
-        <p className="text-sm text-muted-foreground">📅 {formatData(event.data_czas)}</p>
-        {event.boisko && (
-          <button onClick={openMaps} className="text-sm text-blue-600 underline text-left">
-            📍 {event.boisko.nazwa}{event.boisko.adres ? ` · ${event.boisko.adres}` : ''}
-          </button>
-        )}
-        <div className="flex gap-3 text-xs text-muted-foreground pt-1">
-          <span>🏀 {event.format}</span>
-          <span>🥅 {event.liczba_koszy === 1 ? '1 kosz' : '2 kosze'}</span>
-          <span>👥 {zaakceptowani.length}/{event.max_graczy}</span>
-          <span className={event.widocznosc === 'publiczny' ? 'text-green-600' : 'text-gray-500'}>
-            {event.widocznosc}
-          </span>
-        </div>
-        {event.notatki && <p className="text-sm text-muted-foreground pt-1">{event.notatki}</p>}
       </div>
 
       <div className="space-y-2">
-        <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+        <h1 className="text-2xl font-bold">{event.tytul}</h1>
+        <p className="text-sm" style={{ color: '#888888' }}>📅 {formatData(event.data_czas)}</p>
+        {event.boisko && (
+          <button onClick={openMaps} className="text-sm text-left" style={{ color: '#E8541A' }}>
+            📍 {event.boisko.nazwa}{event.boisko.adres ? ` · ${event.boisko.adres}` : ''}
+          </button>
+        )}
+        <div className="flex gap-3 text-xs pt-1" style={{ color: '#888888' }}>
+          <span>🏀 {event.format}</span>
+          <span>🥅 {event.liczba_koszy === 1 ? '1 kosz' : '2 kosze'}</span>
+          <span>👥 {zaakceptowani.length}/{event.max_graczy}</span>
+          <span style={{ color: event.widocznosc === 'publiczny' ? '#22c55e' : '#888888' }}>
+            {event.widocznosc}
+          </span>
+        </div>
+        {event.notatki && <p className="text-sm pt-1" style={{ color: '#888888' }}>{event.notatki}</p>}
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="font-semibold text-xs uppercase tracking-widest" style={{ color: '#666666' }}>
           Gracze ({zaakceptowani.length}/{event.max_graczy})
         </h2>
         {zaakceptowani.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Brak graczy.</p>
+          <p className="text-sm" style={{ color: '#888888' }}>Brak graczy.</p>
         ) : (
-          <div className="border rounded-md divide-y">
+          <div className="rounded-3xl divide-y overflow-hidden" style={{ background: '#1a1a1a', borderColor: '#2a2a2a' }}>
             {zaakceptowani.map(g => (
-              <div key={g.id} className="p-3 space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold">
+              <div key={g.id} className="p-4 space-y-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-2xl flex items-center justify-center text-sm font-bold"
+                    style={{ background: 'rgba(232, 84, 26, 0.15)', color: '#E8541A' }}>
                     {g.profil?.username?.[0]?.toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-medium text-sm">
+                    <p className="font-semibold text-sm text-white">
                       {g.profil?.username}
                       {g.gracz_id === event.organizator && (
-                        <span className="ml-1 text-xs text-muted-foreground font-normal">admin</span>
+                        <span className="ml-2 text-xs font-normal px-1.5 py-0.5 rounded-full"
+                          style={{ background: 'rgba(232,84,26,0.15)', color: '#E8541A' }}>
+                          admin
+                        </span>
                       )}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs" style={{ color: '#888888' }}>
                       {[g.profil?.position, g.profil?.city].filter(Boolean).join(' · ')}
                     </p>
                   </div>
                 </div>
                 {(g.profil?.wzrost || g.profil?.reka || g.profil?.liga || g.profil?.druzyna) && (
-                  <div className="text-xs text-muted-foreground pl-10 flex gap-2 flex-wrap">
+                  <div className="text-xs flex gap-3 flex-wrap pl-12" style={{ color: '#666666' }}>
                     {g.profil.wzrost && <span>{g.profil.wzrost} cm</span>}
                     {g.profil.reka && <span>{g.profil.reka}</span>}
                     {g.profil.druzyna && <span>🏆 {g.profil.druzyna}</span>}
@@ -170,37 +182,40 @@ export default function EventDetailPage() {
 
       {jestemOrganizatorem && oczekujacy.length > 0 && (
         <div className="space-y-2">
-          <h2 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">
+          <h2 className="font-semibold text-xs uppercase tracking-widest" style={{ color: '#666666' }}>
             Oczekujący ({oczekujacy.length})
           </h2>
-          <div className="border rounded-md divide-y">
+          <div className="rounded-3xl divide-y overflow-hidden" style={{ background: '#1a1a1a' }}>
             {oczekujacy.map(g => (
-              <div key={g.id} className="p-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold">
+              <div key={g.id} className="p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-2xl flex items-center justify-center text-sm font-bold"
+                    style={{ background: '#2a2a2a', color: '#888888' }}>
                     {g.profil?.username?.[0]?.toUpperCase()}
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{g.profil?.username}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-semibold text-sm text-white">{g.profil?.username}</p>
+                    <p className="text-xs" style={{ color: '#888888' }}>
                       {[g.profil?.position, g.profil?.city].filter(Boolean).join(' · ')}
                     </p>
                   </div>
                 </div>
                 {(g.profil?.wzrost || g.profil?.reka || g.profil?.liga || g.profil?.druzyna) && (
-                  <div className="text-xs text-muted-foreground flex gap-2 flex-wrap pl-10">
+                  <div className="text-xs flex gap-3 flex-wrap pl-12" style={{ color: '#666666' }}>
                     {g.profil.wzrost && <span>{g.profil.wzrost} cm</span>}
                     {g.profil.reka && <span>{g.profil.reka}</span>}
                     {g.profil.druzyna && <span>🏆 {g.profil.druzyna}</span>}
                     {g.profil.liga && <span>🏅 {g.profil.liga}</span>}
                   </div>
                 )}
-                <div className="flex gap-2 pl-10">
-                  <Button size="sm" onClick={() => handleStatus(g.id, 'zaakceptowany')}>
-                    ✓ Akceptuj
+                <div className="flex gap-2 pl-12">
+                  <Button size="sm" onClick={() => handleStatus(g.id, 'zaakceptowany')}
+                    style={{ background: '#E8541A', color: 'white', borderRadius: '12px' }}>
+                    Akceptuj
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => handleStatus(g.id, 'odrzucony')}>
-                    ✗ Odrzuć
+                  <Button size="sm" variant="outline" onClick={() => handleStatus(g.id, 'odrzucony')}
+                    style={{ borderRadius: '12px' }}>
+                    Odrzuć
                   </Button>
                 </div>
               </div>
