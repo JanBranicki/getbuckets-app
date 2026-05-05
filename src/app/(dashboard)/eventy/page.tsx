@@ -82,7 +82,7 @@ export default function EventyPage() {
   if (loading) return <div className="p-8">Ładowanie...</div>
 
   const renderEvent = (e: Event, pokazDolacz = false) => (
-    <div key={e.id} className="border rounded-md p-4 space-y-2">
+    <div key={e.id} className="border rounded-md p-4 space-y-2 cursor-pointer" onClick={() => router.push(`/eventy/${e.id}`)}>
       <div className="flex items-start justify-between gap-2">
         <h3 className="font-bold">{e.tytul}</h3>
         <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${
