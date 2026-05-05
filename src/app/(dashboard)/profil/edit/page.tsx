@@ -17,6 +17,7 @@ export default function EditProfilPage() {
   const [position, setPosition] = useState('')
   const [bio, setBio] = useState('')
   const [wzrost, setWzrost] = useState('')
+  const [wiek, setWiek] = useState('')
   const [reka, setReka] = useState('')
   const [liga, setLiga] = useState('')
   const [druzyna, setDruzyna] = useState('')
@@ -36,6 +37,7 @@ export default function EditProfilPage() {
         setPosition(data.position ?? '')
         setBio(data.bio ?? '')
         setWzrost(data.wzrost?.toString() ?? '')
+        setWiek(data.wiek?.toString() ?? '')
         setReka(data.reka ?? '')
         setLiga(data.liga ?? '')
         setDruzyna(data.druzyna ?? '')
@@ -57,6 +59,7 @@ export default function EditProfilPage() {
       position: position || null,
       bio,
       wzrost: wzrost ? parseInt(wzrost) : null,
+      wiek: wiek ? parseInt(wiek) : null,
       reka: reka || null,
       liga: liga || null,
       druzyna: druzyna || null,
@@ -108,11 +111,19 @@ export default function EditProfilPage() {
             </select>
           </div>
         </div>
-        <div>
-          <label className="text-xs text-muted-foreground">Wzrost (cm)</label>
-          <input type="number" value={wzrost} onChange={e => setWzrost(e.target.value)}
-            placeholder="np. 185"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1" />
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <label className="text-xs text-muted-foreground">Wzrost (cm)</label>
+            <input type="number" value={wzrost} onChange={e => setWzrost(e.target.value)}
+              placeholder="np. 185"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1" />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs text-muted-foreground">Wiek</label>
+            <input type="number" value={wiek} onChange={e => setWiek(e.target.value)}
+              placeholder="np. 24"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1" />
+          </div>
         </div>
         <div>
           <label className="text-xs text-muted-foreground">Drużyna</label>

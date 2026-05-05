@@ -15,7 +15,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen">
       <Nav />
-      <main className="flex-1 md:pb-0 pb-16">
+      <main className="flex-1 md:pb-0 pb-16 min-h-screen" style={{ background: '#0F0F0F' }}>
         {children}
       </main>
     </div>
