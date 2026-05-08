@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { MessageCircle } from 'lucide-react'
 
 type Profil = {
   id: string
@@ -17,7 +19,8 @@ type Znajomy = {
   nadawca: string
   odbiorca: string
   status: string
-  profil: Profil
+  profil_nadawcy: Profil
+  profil_odbiorcy: Profil
 }
 
 export default function ZnajomiPage() {
@@ -27,6 +30,7 @@ export default function ZnajomiPage() {
   const [wyniki, setWyniki] = useState<Profil[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
   const supabase = createClient()
 
   useEffect(() => {
@@ -37,7 +41,11 @@ export default function ZnajomiPage() {
 
       const { data } = await supabase
         .from('znajomi')
-        .select('*, profil:profiles!znajomi_nadawca_fkey(id, username, full_name, city, position)')
+        .select(`
+          *,
+          profil_nadawcy:profiles!znajomi_nadawca_fkey(id, username, full_name, city, position),
+          profil_odbiorcy:profiles!znajomi_odbiorca_fkey(id, username, full_name, city, position)
+        `)
         .or(`nadawca.eq.${user.id},odbiorca.eq.${user.id}`)
 
       if (data) {
@@ -51,6 +59,14 @@ export default function ZnajomiPage() {
     load()
   }, [])
 
+  function getDrugiProfil(z: Znajomy, currentUserId: string | null): Profil {
+    return z.nadawca === currentUserId ? z.profil_odbiorcy : z.profil_nadawcy
+  }
+
+  function getDrugiId(z: Znajomy, currentUserId: string | null): string {
+    return z.nadawca === currentUserId ? z.odbiorca : z.nadawca
+  }
+
   async function handleSzukaj() {
     if (!szukaj.trim()) return
     const { data } = await supabase
@@ -62,7 +78,7 @@ export default function ZnajomiPage() {
     if (data) setWyniki(data)
   }
 
-  async function handleZaproś(odbiorcaId: string) {
+  async function handleZaprос(odbiorcaId: string) {
     if (!userId) return
     await supabase.from('znajomi').insert({
       nadawca: userId,
@@ -91,7 +107,6 @@ export default function ZnajomiPage() {
     <div className="p-4 max-w-lg mx-auto space-y-6 pb-20">
       <h1 className="text-2xl font-bold">Znajomi</h1>
 
-      {/* Wyszukiwarka */}
       <div className="space-y-2">
         <div className="flex gap-2">
           <input
@@ -99,66 +114,79 @@ export default function ZnajomiPage() {
             onChange={e => setSzukaj(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSzukaj()}
             placeholder="Szukaj gracza po username..."
-            className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            className="flex-1 rounded-2xl border border-input bg-background px-4 py-2.5 text-sm"
           />
-          <Button onClick={handleSzukaj}>Szukaj</Button>
+          <Button onClick={handleSzukaj} className="rounded-2xl">Szukaj</Button>
         </div>
         {wyniki.length > 0 && (
-          <div className="border rounded-md divide-y">
+          <div className="rounded-3xl overflow-hidden divide-y" style={{ background: '#1a1a1a' }}>
             {wyniki.map(p => (
-              <div key={p.id} className="flex items-center justify-between p-3">
+              <div key={p.id} className="flex items-center justify-between p-4">
                 <div>
-                  <p className="font-medium text-sm">{p.username}</p>
-                  <p className="text-xs text-muted-foreground">{p.city} {p.position && `· ${p.position}`}</p>
+                  <p className="font-semibold text-sm text-white">{p.username}</p>
+                  <p className="text-xs" style={{ color: '#888888' }}>{p.city}{p.position && ` · ${p.position}`}</p>
                 </div>
-                <Button size="sm" onClick={() => handleZaproś(p.id)}>Zaproś</Button>
+                <Button size="sm" onClick={() => handleZaprос(p.id)} className="rounded-2xl">Zaproś</Button>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Zaproszenia */}
       {zaproszenia.length > 0 && (
         <div className="space-y-2">
-          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Zaproszenia</h2>
-          <div className="border rounded-md divide-y">
-            {zaproszenia.map(z => (
-              <div key={z.id} className="flex items-center justify-between p-3">
-                <div>
-                  <p className="font-medium text-sm">{z.profil?.username}</p>
-                  <p className="text-xs text-muted-foreground">{z.profil?.city}</p>
+          <h2 className="font-semibold text-xs uppercase tracking-widest" style={{ color: '#666666' }}>Zaproszenia</h2>
+          <div className="rounded-3xl overflow-hidden divide-y" style={{ background: '#1a1a1a' }}>
+            {zaproszenia.map(z => {
+              const profil = getDrugiProfil(z, userId)
+              return (
+                <div key={z.id} className="flex items-center justify-between p-4">
+                  <div>
+                    <p className="font-semibold text-sm text-white">{profil?.username}</p>
+                    <p className="text-xs" style={{ color: '#888888' }}>{profil?.city}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => handleAkceptuj(z.id)} className="rounded-2xl"
+                      style={{ background: '#E8541A' }}>✓</Button>
+                    <Button size="sm" variant="outline" onClick={() => handleOdrzuc(z.id)} className="rounded-2xl">✗</Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleAkceptuj(z.id)}>✓</Button>
-                  <Button size="sm" variant="outline" onClick={() => handleOdrzuc(z.id)}>✗</Button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
 
-      {/* Lista znajomych */}
       <div className="space-y-2">
-        <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+        <h2 className="font-semibold text-xs uppercase tracking-widest" style={{ color: '#666666' }}>
           Znajomi ({znajomi.length})
         </h2>
         {znajomi.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Brak znajomych — zaproś pierwszego gracza!</p>
+          <p className="text-sm" style={{ color: '#888888' }}>Brak znajomych — zaproś pierwszego gracza!</p>
         ) : (
-          <div className="border rounded-md divide-y">
-            {znajomi.map(z => (
-              <div key={z.id} className="flex items-center gap-3 p-3">
-                <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-sm font-bold">
-                  {z.profil?.username?.[0]?.toUpperCase()}
+          <div className="rounded-3xl overflow-hidden divide-y" style={{ background: '#1a1a1a' }}>
+            {znajomi.map(z => {
+              const profil = getDrugiProfil(z, userId)
+              const drugieId = getDrugiId(z, userId)
+              return (
+                <div key={z.id} className="flex items-center gap-3 p-4">
+                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-bold"
+                    style={{ background: 'rgba(232, 84, 26, 0.15)', color: '#E8541A' }}>
+                    {profil?.username?.[0]?.toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-sm text-white">{profil?.username}</p>
+                    <p className="text-xs" style={{ color: '#888888' }}>{profil?.city}{profil?.position && ` · ${profil.position}`}</p>
+                  </div>
+                  <button
+                    onClick={() => router.push(`/wiadomosci/${drugieId}`)}
+                    className="w-9 h-9 rounded-2xl flex items-center justify-center"
+                    style={{ background: '#2a2a2a' }}>
+                    <MessageCircle size={16} style={{ color: '#888888' }} />
+                  </button>
                 </div>
-                <div>
-                  <p className="font-medium text-sm">{z.profil?.username}</p>
-                  <p className="text-xs text-muted-foreground">{z.profil?.city} {z.profil?.position && `· ${z.profil.position}`}</p>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
