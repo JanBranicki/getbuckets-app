@@ -116,7 +116,7 @@ export default function ChatPage() {
         <p className="font-semibold text-white">{rozmowca?.username}</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-2 pb-24">
+      <div className="flex-1 overflow-y-auto p-4 space-y-2" style={{ paddingBottom: '140px' }}>
         {wiadomosci.map(w => {
           const moja = w.nadawca === userId
           return (
@@ -138,8 +138,8 @@ export default function ChatPage() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="fixed left-0 right-0 p-4 flex gap-3 items-center"
-  style={{ bottom: '64px', background: '#0F0F0F', borderTop: '1px solid #1a1a1a' }}>
+      <div className="fixed left-0 right-0 px-4 py-3 flex gap-3 items-center"
+  style={{ bottom: '56px', background: '#0F0F0F', borderTop: '1px solid #1a1a1a' }}>
         <input
           value={tresc}
           onChange={e => setTresc(e.target.value)}
