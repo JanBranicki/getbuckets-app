@@ -138,8 +138,8 @@ export default function ChatPage() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 flex gap-3 items-center"
-        style={{ background: '#0F0F0F', borderTop: '1px solid #1a1a1a', paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+      <div className="fixed left-0 right-0 p-4 flex gap-3 items-center"
+  style={{ bottom: '64px', background: '#0F0F0F', borderTop: '1px solid #1a1a1a' }}>
         <input
           value={tresc}
           onChange={e => setTresc(e.target.value)}
