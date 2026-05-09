@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
-export default async function GraczPage({ params }: { params: { id: string } }) {
+export default async function GraczPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -10,7 +11,7 @@ export default async function GraczPage({ params }: { params: { id: string } }) 
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!profile) return <div className="p-8">Nie znaleziono gracza.</div>
@@ -18,7 +19,7 @@ export default async function GraczPage({ params }: { params: { id: string } }) 
   const { data: znajomyStatus } = await supabase
     .from('znajomi')
     .select('status, nadawca')
-    .or(`and(nadawca.eq.${user.id},odbiorca.eq.${params.id}),and(nadawca.eq.${params.id},odbiorca.eq.${user.id})`)
+    .or(`and(nadawca.eq.${user.id},odbiorca.eq.${id}),and(nadawca.eq.${id},odbiorca.eq.${user.id})`)
     .single()
 
   return (
@@ -42,8 +43,8 @@ export default async function GraczPage({ params }: { params: { id: string } }) 
             <p className="text-sm" style={{ color: '#aaaaaa' }}>{profile.full_name}</p>
             {profile.city && <p className="text-xs mt-0.5" style={{ color: '#888888' }}>📍 {profile.city}</p>}
           </div>
-          {params.id !== user.id && znajomyStatus?.status === 'zaakceptowany' && (
-            <Link href={'/wiadomosci/' + params.id}
+          {id !== user.id && znajomyStatus?.status === 'zaakceptowany' && (
+            <Link href={'/wiadomosci/' + id}
               className="px-4 py-2 rounded-2xl text-sm font-medium"
               style={{ background: '#E8541A', color: 'white' }}>
               Wiadomość

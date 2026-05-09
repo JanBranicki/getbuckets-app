@@ -138,7 +138,8 @@ export default function EventDetailPage() {
         ) : (
           <div className="rounded-3xl divide-y overflow-hidden" style={{ background: '#1a1a1a' }}>
             {zaakceptowani.map(g => (
-              <div key={g.id} className="p-4 space-y-1">
+              <div key={g.id} className="p-4 space-y-1 cursor-pointer"
+                onClick={() => router.push(`/gracz/${g.gracz_id}`)}>
                 <div className="flex items-center gap-3">
                   <Avatar username={g.profil?.username} avatarUrl={g.profil?.avatar_url} size={36} radius={10} />
                   <div>
@@ -177,7 +178,8 @@ export default function EventDetailPage() {
           </h2>
           <div className="rounded-3xl divide-y overflow-hidden" style={{ background: '#1a1a1a' }}>
             {oczekujacy.map(g => (
-              <div key={g.id} className="p-4 space-y-3">
+              <div key={g.id} className="p-4 space-y-3 cursor-pointer"
+                onClick={() => router.push(`/gracz/${g.gracz_id}`)}>
                 <div className="flex items-center gap-3">
                   <Avatar username={g.profil?.username} avatarUrl={g.profil?.avatar_url} size={36} radius={10} />
                   <div className="flex-1">
@@ -195,7 +197,7 @@ export default function EventDetailPage() {
                     {g.profil.liga && <span>🏅 {g.profil.liga}</span>}
                   </div>
                 )}
-                <div className="flex gap-2 pl-12">
+                <div className="flex gap-2 pl-12" onClick={e => e.stopPropagation()}>
                   <Button size="sm" onClick={() => handleStatus(g.id, 'zaakceptowany')}
                     style={{ background: '#E8541A', color: 'white', borderRadius: '12px' }}>
                     Akceptuj
