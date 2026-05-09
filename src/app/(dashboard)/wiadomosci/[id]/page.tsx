@@ -106,9 +106,11 @@ export default function ChatPage() {
   if (loading) return <div className="p-8">Ładowanie...</div>
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="flex items-center gap-3 p-4 border-b" style={{ borderColor: '#1a1a1a' }}>
-        <button onClick={() => router.back()} style={{ color: '#888888' }}>←</button>
+    <div className="flex flex-col" style={{ height: '100dvh' }}>
+      {/* Header */}
+      <div className="flex items-center gap-3 px-4 py-3 flex-shrink-0"
+        style={{ borderBottom: '1px solid #1a1a1a' }}>
+        <button onClick={() => router.back()} style={{ color: '#888888' }} className="text-lg">←</button>
         <div className="w-9 h-9 rounded-2xl flex items-center justify-center font-bold"
           style={{ background: 'rgba(232, 84, 26, 0.15)', color: '#E8541A' }}>
           {rozmowca?.username[0].toUpperCase()}
@@ -116,18 +118,20 @@ export default function ChatPage() {
         <p className="font-semibold text-white">{rozmowca?.username}</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-2" style={{ paddingBottom: '140px' }}>
+      {/* Wiadomości */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {wiadomosci.map(w => {
           const moja = w.nadawca === userId
           return (
             <div key={w.id} className={`flex ${moja ? 'justify-end' : 'justify-start'}`}>
               <div
-                className="max-w-xs px-4 py-2.5 rounded-3xl text-sm"
+                className="max-w-[75%] px-4 py-2.5 text-sm"
                 style={{
                   background: moja ? '#E8541A' : '#242424',
                   color: 'white',
-                  borderBottomRightRadius: moja ? '4px' : '24px',
-                  borderBottomLeftRadius: moja ? '24px' : '4px',
+                  borderRadius: '20px',
+                  borderBottomRightRadius: moja ? '4px' : '20px',
+                  borderBottomLeftRadius: moja ? '20px' : '4px',
                 }}
               >
                 {w.tresc}
@@ -138,8 +142,9 @@ export default function ChatPage() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="fixed left-0 right-0 px-4 py-3 flex gap-3 items-center"
-  style={{ bottom: '56px', background: '#0F0F0F', borderTop: '1px solid #1a1a1a' }}>
+      {/* Input */}
+      <div className="flex-shrink-0 px-4 py-3 flex gap-3 items-center"
+        style={{ borderTop: '1px solid #1a1a1a', background: '#0F0F0F' }}>
         <input
           value={tresc}
           onChange={e => setTresc(e.target.value)}
