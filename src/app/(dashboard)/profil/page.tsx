@@ -92,28 +92,18 @@ export default async function ProfilPage() {
         {(profile?.instagram || profile?.snapchat) && (
           <div className="p-4 rounded-3xl" style={{ background: '#242424' }}>
             <p className="text-xs mb-3" style={{ color: '#888888' }}>Social media</p>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
               {profile?.instagram && (
-                
-                  href={'https://instagram.com/' + profile.instagram.replace('@', '')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
-                  style={{ background: '#2a2a2a', color: '#E8541A' }}
-                >
+                <span className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
+                  style={{ background: '#2a2a2a', color: '#E8541A' }}>
                   📷 {profile.instagram}
-                </a>
+                </span>
               )}
               {profile?.snapchat && (
-                
-                  href={'https://snapchat.com/add/' + profile.snapchat.replace('@', '')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
-                  style={{ background: '#2a2a2a', color: '#FFFC00' }}
-                >
+                <span className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
+                  style={{ background: '#2a2a2a', color: '#FFFC00' }}>
                   👻 {profile.snapchat}
-                </a>
+                </span>
               )}
             </div>
           </div>
