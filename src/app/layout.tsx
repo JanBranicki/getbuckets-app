@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
@@ -13,6 +13,13 @@ export const metadata: Metadata = {
   description: "Platforma dla graczy koszykówki w Polsce",
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,9 +27,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pl" className={`${inter.variable} h-full antialiased`}>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {children}
       </body>
