@@ -95,7 +95,7 @@ export default async function ProfilPage() {
             <div className="flex gap-3">
               {profile?.instagram && (
                 
-                  href={`https://instagram.com/${profile.instagram.replace('@', '')}`}
+                  href={'https://instagram.com/' + profile.instagram.replace('@', '')}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
@@ -106,7 +106,7 @@ export default async function ProfilPage() {
               )}
               {profile?.snapchat && (
                 
-                  href={`https://snapchat.com/add/${profile.snapchat.replace('@', '')}`}
+                  href={'https://snapchat.com/add/' + profile.snapchat.replace('@', '')}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
