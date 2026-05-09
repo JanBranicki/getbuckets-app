@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Camera } from 'lucide-react'
 
 const POZYCJE = ['PG', 'SG', 'SF', 'PF', 'C']
 const REKI = ['prawa', 'lewa', 'oburęczny']
@@ -11,6 +12,7 @@ const REKI = ['prawa', 'lewa', 'oburęczny']
 export default function EditProfilPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [username, setUsername] = useState('')
   const [fullName, setFullName] = useState('')
   const [city, setCity] = useState('')
@@ -21,7 +23,9 @@ export default function EditProfilPage() {
   const [reka, setReka] = useState('')
   const [liga, setLiga] = useState('')
   const [druzyna, setDruzyna] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -41,11 +45,35 @@ export default function EditProfilPage() {
         setReka(data.reka ?? '')
         setLiga(data.liga ?? '')
         setDruzyna(data.druzyna ?? '')
+        setAvatarUrl(data.avatar_url ?? null)
       }
       setLoading(false)
     }
     load()
   }, [])
+
+  async function handleAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const ext = file.name.split('.').pop()
+    const path = `${user.id}/avatar.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true })
+
+    if (!uploadError) {
+      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+      const url = data.publicUrl + '?t=' + Date.now()
+      setAvatarUrl(url)
+      await supabase.from('profiles').update({ avatar_url: url }).eq('id', user.id)
+    }
+    setUploading(false)
+  }
 
   async function handleSave() {
     setSaving(true)
@@ -78,6 +106,38 @@ export default function EditProfilPage() {
     <div className="min-h-screen p-4 max-w-lg mx-auto pb-20">
       <h1 className="text-2xl font-bold mb-6">Edytuj profil</h1>
       <div className="space-y-4">
+
+        {/* Avatar */}
+        <div className="flex justify-center mb-2">
+          <div className="relative">
+            <div
+              className="w-24 h-24 rounded-3xl flex items-center justify-center text-3xl font-bold overflow-hidden cursor-pointer"
+              style={{ background: 'rgba(232, 84, 26, 0.15)', color: '#E8541A' }}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                username[0]?.toUpperCase()
+              )}
+            </div>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-0 right-0 w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: '#E8541A' }}
+            >
+              {uploading ? '...' : <Camera size={14} color="white" />}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatar}
+            />
+          </div>
+        </div>
+
         <div>
           <label className="text-xs text-muted-foreground">Username</label>
           <input value={username} onChange={e => setUsername(e.target.value)}
