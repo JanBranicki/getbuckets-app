@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { MessageCircle } from 'lucide-react'
+import Avatar from '@/components/avatar'
 
 type Profil = {
   id: string
@@ -12,6 +13,7 @@ type Profil = {
   full_name: string | null
   city: string | null
   position: string | null
+  avatar_url?: string | null
 }
 
 type Znajomy = {
@@ -43,8 +45,8 @@ export default function ZnajomiPage() {
         .from('znajomi')
         .select(`
           *,
-          profil_nadawcy:profiles!znajomi_nadawca_fkey(id, username, full_name, city, position),
-          profil_odbiorcy:profiles!znajomi_odbiorca_fkey(id, username, full_name, city, position)
+          profil_nadawcy:profiles!znajomi_nadawca_fkey(id, username, full_name, city, position, avatar_url),
+          profil_odbiorcy:profiles!znajomi_odbiorca_fkey(id, username, full_name, city, position, avatar_url)
         `)
         .or(`nadawca.eq.${user.id},odbiorca.eq.${user.id}`)
 
@@ -71,7 +73,7 @@ export default function ZnajomiPage() {
     if (!szukaj.trim()) return
     const { data } = await supabase
       .from('profiles')
-      .select('id, username, full_name, city, position')
+      .select('id, username, full_name, city, position, avatar_url')
       .ilike('username', `%${szukaj}%`)
       .neq('id', userId)
       .limit(10)
@@ -80,10 +82,7 @@ export default function ZnajomiPage() {
 
   async function handleZaprос(odbiorcaId: string) {
     if (!userId) return
-    await supabase.from('znajomi').insert({
-      nadawca: userId,
-      odbiorca: odbiorcaId,
-    })
+    await supabase.from('znajomi').insert({ nadawca: userId, odbiorca: odbiorcaId })
     setWyniki(prev => prev.filter(p => p.id !== odbiorcaId))
   }
 
@@ -122,9 +121,12 @@ export default function ZnajomiPage() {
           <div className="rounded-3xl overflow-hidden divide-y" style={{ background: '#1a1a1a' }}>
             {wyniki.map(p => (
               <div key={p.id} className="flex items-center justify-between p-4">
-                <div>
-                  <p className="font-semibold text-sm text-white">{p.username}</p>
-                  <p className="text-xs" style={{ color: '#888888' }}>{p.city}{p.position && ` · ${p.position}`}</p>
+                <div className="flex items-center gap-3">
+                  <Avatar username={p.username} avatarUrl={p.avatar_url} size={40} radius={12} />
+                  <div>
+                    <p className="font-semibold text-sm text-white">{p.username}</p>
+                    <p className="text-xs" style={{ color: '#888888' }}>{p.city}{p.position && ` · ${p.position}`}</p>
+                  </div>
                 </div>
                 <Button size="sm" onClick={() => handleZaprос(p.id)} className="rounded-2xl">Zaproś</Button>
               </div>
@@ -141,9 +143,12 @@ export default function ZnajomiPage() {
               const profil = getDrugiProfil(z, userId)
               return (
                 <div key={z.id} className="flex items-center justify-between p-4">
-                  <div>
-                    <p className="font-semibold text-sm text-white">{profil?.username}</p>
-                    <p className="text-xs" style={{ color: '#888888' }}>{profil?.city}</p>
+                  <div className="flex items-center gap-3">
+                    <Avatar username={profil?.username} avatarUrl={profil?.avatar_url} size={40} radius={12} />
+                    <div>
+                      <p className="font-semibold text-sm text-white">{profil?.username}</p>
+                      <p className="text-xs" style={{ color: '#888888' }}>{profil?.city}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" onClick={() => handleAkceptuj(z.id)} className="rounded-2xl"
@@ -170,10 +175,7 @@ export default function ZnajomiPage() {
               const drugieId = getDrugiId(z, userId)
               return (
                 <div key={z.id} className="flex items-center gap-3 p-4">
-                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-bold"
-                    style={{ background: 'rgba(232, 84, 26, 0.15)', color: '#E8541A' }}>
-                    {profil?.username?.[0]?.toUpperCase()}
-                  </div>
+                  <Avatar username={profil?.username} avatarUrl={profil?.avatar_url} size={40} radius={12} />
                   <div className="flex-1">
                     <p className="font-semibold text-sm text-white">{profil?.username}</p>
                     <p className="text-xs" style={{ color: '#888888' }}>{profil?.city}{profil?.position && ` · ${profil.position}`}</p>

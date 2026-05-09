@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import Avatar from '@/components/avatar'
 
 type Gracz = {
   id: string
@@ -18,6 +19,7 @@ type Gracz = {
     reka: string | null
     liga: string | null
     druzyna: string | null
+    avatar_url: string | null
   }
 }
 
@@ -58,7 +60,7 @@ export default function EventDetailPage() {
 
       const { data: gr } = await supabase
         .from('event_gracze')
-        .select('*, profil:profiles(username, full_name, city, position, wzrost, reka, liga, druzyna)')
+        .select('*, profil:profiles(username, full_name, city, position, wzrost, reka, liga, druzyna, avatar_url)')
         .eq('event_id', id)
 
       if (ev) setEvent(ev)
@@ -104,15 +106,8 @@ export default function EventDetailPage() {
         <button onClick={() => router.back()} className="text-sm" style={{ color: '#888888' }}>← Wróć</button>
         {jestemOrganizatorem && (
           <div className="flex gap-3">
-            <button
-              onClick={() => router.push(`/eventy/${id}/edit`)}
-              className="text-sm hover:underline"
-              style={{ color: '#888888' }}>
-              Edytuj
-            </button>
-            <button onClick={handleUsun} className="text-sm hover:underline" style={{ color: '#EF4444' }}>
-              Usuń
-            </button>
+            <button onClick={() => router.push(`/eventy/${id}/edit`)} className="text-sm hover:underline" style={{ color: '#888888' }}>Edytuj</button>
+            <button onClick={handleUsun} className="text-sm hover:underline" style={{ color: '#EF4444' }}>Usuń</button>
           </div>
         )}
       </div>
@@ -129,9 +124,7 @@ export default function EventDetailPage() {
           <span>🏀 {event.format}</span>
           <span>🥅 {event.liczba_koszy === 1 ? '1 kosz' : '2 kosze'}</span>
           <span>👥 {zaakceptowani.length}/{event.max_graczy}</span>
-          <span style={{ color: event.widocznosc === 'publiczny' ? '#22c55e' : '#888888' }}>
-            {event.widocznosc}
-          </span>
+          <span style={{ color: event.widocznosc === 'publiczny' ? '#22c55e' : '#888888' }}>{event.widocznosc}</span>
         </div>
         {event.notatki && <p className="text-sm pt-1" style={{ color: '#888888' }}>{event.notatki}</p>}
       </div>
@@ -143,14 +136,11 @@ export default function EventDetailPage() {
         {zaakceptowani.length === 0 ? (
           <p className="text-sm" style={{ color: '#888888' }}>Brak graczy.</p>
         ) : (
-          <div className="rounded-3xl divide-y overflow-hidden" style={{ background: '#1a1a1a', borderColor: '#2a2a2a' }}>
+          <div className="rounded-3xl divide-y overflow-hidden" style={{ background: '#1a1a1a' }}>
             {zaakceptowani.map(g => (
               <div key={g.id} className="p-4 space-y-1">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-2xl flex items-center justify-center text-sm font-bold"
-                    style={{ background: 'rgba(232, 84, 26, 0.15)', color: '#E8541A' }}>
-                    {g.profil?.username?.[0]?.toUpperCase()}
-                  </div>
+                  <Avatar username={g.profil?.username} avatarUrl={g.profil?.avatar_url} size={36} radius={10} />
                   <div>
                     <p className="font-semibold text-sm text-white">
                       {g.profil?.username}
@@ -189,10 +179,7 @@ export default function EventDetailPage() {
             {oczekujacy.map(g => (
               <div key={g.id} className="p-4 space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-2xl flex items-center justify-center text-sm font-bold"
-                    style={{ background: '#2a2a2a', color: '#888888' }}>
-                    {g.profil?.username?.[0]?.toUpperCase()}
-                  </div>
+                  <Avatar username={g.profil?.username} avatarUrl={g.profil?.avatar_url} size={36} radius={10} />
                   <div className="flex-1">
                     <p className="font-semibold text-sm text-white">{g.profil?.username}</p>
                     <p className="text-xs" style={{ color: '#888888' }}>

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useParams, useRouter } from 'next/navigation'
 import { Send, ArrowLeft } from 'lucide-react'
+import Avatar from '@/components/avatar'
 
 type Wiadomosc = {
   id: string
@@ -14,13 +15,18 @@ type Wiadomosc = {
   przeczytana: boolean
 }
 
+type Rozmowca = {
+  username: string
+  avatar_url: string | null
+}
+
 export default function ChatPage() {
   const { id } = useParams()
   const router = useRouter()
   const [wiadomosci, setWiadomosci] = useState<Wiadomosc[]>([])
   const [tresc, setTresc] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
-  const [rozmowca, setRozmowca] = useState<{ username: string } | null>(null)
+  const [rozmowca, setRozmowca] = useState<Rozmowca | null>(null)
   const [loading, setLoading] = useState(true)
   const bottomRef = useRef<HTMLDivElement>(null)
   const userIdRef = useRef<string | null>(null)
@@ -44,7 +50,7 @@ export default function ChatPage() {
 
       const { data: profil } = await supabase
         .from('profiles')
-        .select('username')
+        .select('username, avatar_url')
         .eq('id', id)
         .single()
       if (profil) setRozmowca(profil)
@@ -61,7 +67,6 @@ export default function ChatPage() {
     }
     load()
 
-    // Polling co 3 sekundy
     const interval = setInterval(() => {
       if (userIdRef.current) fetchWiadomosci(userIdRef.current)
     }, 3000)
@@ -93,9 +98,7 @@ export default function ChatPage() {
         <button onClick={() => router.back()}>
           <ArrowLeft size={20} color="#888888" />
         </button>
-        <div style={{ width: '36px', height: '36px', borderRadius: '12px', background: 'rgba(232, 84, 26, 0.15)', color: '#E8541A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px' }}>
-          {rozmowca?.username[0].toUpperCase()}
-        </div>
+        <Avatar username={rozmowca?.username ?? '?'} avatarUrl={rozmowca?.avatar_url} size={36} radius={10} />
         <p style={{ fontWeight: '600', color: 'white' }}>{rozmowca?.username}</p>
       </div>
 

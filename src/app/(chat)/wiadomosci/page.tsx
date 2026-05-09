@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+import Avatar from '@/components/avatar'
 
 type Konwersacja = {
   id: string
   username: string
   full_name: string | null
+  avatar_url: string | null
   ostatnia_wiadomosc: string
   czas: string
   nieprzeczytane: number
@@ -27,7 +29,7 @@ export default function WiadomosciPage() {
 
       const { data: znajomi } = await supabase
         .from('znajomi')
-        .select('nadawca, odbiorca, profil_nadawcy:profiles!znajomi_nadawca_fkey(id, username, full_name), profil_odbiorcy:profiles!znajomi_odbiorca_fkey(id, username, full_name)')
+        .select('nadawca, odbiorca, profil_nadawcy:profiles!znajomi_nadawca_fkey(id, username, full_name, avatar_url), profil_odbiorcy:profiles!znajomi_odbiorca_fkey(id, username, full_name, avatar_url)')
         .or(`nadawca.eq.${user.id},odbiorca.eq.${user.id}`)
         .eq('status', 'zaakceptowany')
 
@@ -57,6 +59,7 @@ export default function WiadomosciPage() {
             id: drugieId,
             username: drugi?.username ?? '?',
             full_name: drugi?.full_name ?? null,
+            avatar_url: drugi?.avatar_url ?? null,
             ostatnia_wiadomosc: ostatnia?.tresc ?? 'Brak wiadomości',
             czas: ostatnia?.created_at ?? '',
             nieprzeczytane: count ?? 0,
@@ -105,9 +108,7 @@ export default function WiadomosciPage() {
               onClick={() => router.push(`/wiadomosci/${k.id}`)}
               style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', cursor: 'pointer', borderBottom: '1px solid #1a1a1a' }}
             >
-              <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: 'rgba(232,84,26,0.15)', color: '#E8541A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '18px', flexShrink: 0 }}>
-                {k.username[0].toUpperCase()}
-              </div>
+              <Avatar username={k.username} avatarUrl={k.avatar_url} size={48} radius={16} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontWeight: '600', color: 'white', fontSize: '14px' }}>{k.username}</p>

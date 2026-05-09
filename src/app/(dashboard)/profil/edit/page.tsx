@@ -23,6 +23,8 @@ export default function EditProfilPage() {
   const [reka, setReka] = useState('')
   const [liga, setLiga] = useState('')
   const [druzyna, setDruzyna] = useState('')
+  const [instagram, setInstagram] = useState('')
+  const [snapchat, setSnapchat] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [error, setError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -45,6 +47,8 @@ export default function EditProfilPage() {
         setReka(data.reka ?? '')
         setLiga(data.liga ?? '')
         setDruzyna(data.druzyna ?? '')
+        setInstagram(data.instagram ?? '')
+        setSnapchat(data.snapchat ?? '')
         setAvatarUrl(data.avatar_url ?? null)
       }
       setLoading(false)
@@ -58,14 +62,9 @@ export default function EditProfilPage() {
     setUploading(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-
     const ext = file.name.split('.').pop()
     const path = `${user.id}/avatar.${ext}`
-
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(path, file, { upsert: true })
-
+    const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
     if (!uploadError) {
       const { data } = supabase.storage.from('avatars').getPublicUrl(path)
       const url = data.publicUrl + '?t=' + Date.now()
@@ -91,6 +90,8 @@ export default function EditProfilPage() {
       reka: reka || null,
       liga: liga || null,
       druzyna: druzyna || null,
+      instagram: instagram || null,
+      snapchat: snapchat || null,
     }).eq('id', user.id)
     if (error) {
       setError(error.message)
@@ -107,7 +108,6 @@ export default function EditProfilPage() {
       <h1 className="text-2xl font-bold mb-6">Edytuj profil</h1>
       <div className="space-y-4">
 
-        {/* Avatar */}
         <div className="flex justify-center mb-2">
           <div className="relative">
             <div
@@ -128,13 +128,7 @@ export default function EditProfilPage() {
             >
               {uploading ? '...' : <Camera size={14} color="white" />}
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatar}
-            />
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatar} />
           </div>
         </div>
 
@@ -196,6 +190,20 @@ export default function EditProfilPage() {
           <input value={liga} onChange={e => setLiga(e.target.value)}
             placeholder="np. Liga Warszawska"
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1" />
+        </div>
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <label className="text-xs text-muted-foreground">Instagram</label>
+            <input value={instagram} onChange={e => setInstagram(e.target.value)}
+              placeholder="@username"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1" />
+          </div>
+          <div className="flex-1">
+            <label className="text-xs text-muted-foreground">Snapchat</label>
+            <input value={snapchat} onChange={e => setSnapchat(e.target.value)}
+              placeholder="@username"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-1" />
+          </div>
         </div>
         <div>
           <label className="text-xs text-muted-foreground">Bio</label>

@@ -28,9 +28,13 @@ export default async function ProfilPage() {
 
       <div className="space-y-3">
         <div className="flex items-center gap-4 p-4 rounded-3xl" style={{ background: '#242424' }}>
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold"
+          <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center text-2xl font-bold flex-shrink-0"
             style={{ background: 'rgba(232, 84, 26, 0.15)', color: '#E8541A' }}>
-            {profile?.username?.[0]?.toUpperCase()}
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              profile?.username?.[0]?.toUpperCase()
+            )}
           </div>
           <div>
             <p className="font-bold text-lg text-white">{profile?.username}</p>
@@ -82,6 +86,36 @@ export default async function ProfilPage() {
           <div className="p-4 rounded-3xl" style={{ background: '#242424' }}>
             <p className="text-xs mb-2" style={{ color: '#888888' }}>Bio</p>
             <p className="text-base text-white">{profile.bio}</p>
+          </div>
+        )}
+
+        {(profile?.instagram || profile?.snapchat) && (
+          <div className="p-4 rounded-3xl" style={{ background: '#242424' }}>
+            <p className="text-xs mb-3" style={{ color: '#888888' }}>Social media</p>
+            <div className="flex gap-3">
+              {profile?.instagram && (
+                
+                  href={`https://instagram.com/${profile.instagram.replace('@', '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
+                  style={{ background: '#2a2a2a', color: '#E8541A' }}
+                >
+                  📷 {profile.instagram}
+                </a>
+              )}
+              {profile?.snapchat && (
+                
+                  href={`https://snapchat.com/add/${profile.snapchat.replace('@', '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
+                  style={{ background: '#2a2a2a', color: '#FFFC00' }}
+                >
+                  👻 {profile.snapchat}
+                </a>
+              )}
+            </div>
           </div>
         )}
 
