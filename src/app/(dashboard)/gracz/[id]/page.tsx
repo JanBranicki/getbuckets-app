@@ -1,56 +1,103 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
+'use client'
 
-export default async function GraczPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { useParams, useRouter } from 'next/navigation'
+import Avatar from '@/components/avatar'
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', id)
-    .single()
+export default function GraczPage() {
+  const { id } = useParams()
+  const router = useRouter()
+  const [profile, setProfile] = useState<any>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [znajomyStatus, setZnajomyStatus] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [dodawanie, setDodawanie] = useState(false)
+  const supabase = createClient()
 
+  useEffect(() => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      setUserId(user.id)
+
+      const { data: p } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .single()
+      if (p) setProfile(p)
+
+      const { data: z } = await supabase
+        .from('znajomi')
+        .select('status, nadawca')
+        .or(`and(nadawca.eq.${user.id},odbiorca.eq.${id}),and(nadawca.eq.${id},odbiorca.eq.${user.id})`)
+        .single()
+      if (z) setZnajomyStatus(z.status)
+
+      setLoading(false)
+    }
+    load()
+  }, [id])
+
+  async function handleDodaj() {
+    if (!userId) return
+    setDodawanie(true)
+    await supabase.from('znajomi').insert({ nadawca: userId, odbiorca: id })
+    setZnajomyStatus('oczekuje')
+    setDodawanie(false)
+  }
+
+  if (loading) return <div className="p-8">Ładowanie...</div>
   if (!profile) return <div className="p-8">Nie znaleziono gracza.</div>
 
-  const { data: znajomyStatus } = await supabase
-    .from('znajomi')
-    .select('status, nadawca')
-    .or(`and(nadawca.eq.${user.id},odbiorca.eq.${id}),and(nadawca.eq.${id},odbiorca.eq.${user.id})`)
-    .single()
+  const jestemTymGraczem = userId === id
+  const jestZnajomym = znajomyStatus === 'zaakceptowany'
+  const czekaNaAkceptacje = znajomyStatus === 'oczekuje'
 
   return (
     <div className="p-4 max-w-lg mx-auto pb-24">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/znajomi" className="text-sm" style={{ color: '#888888' }}>← Wróć</Link>
+        <button onClick={() => router.back()} className="text-sm" style={{ color: '#888888' }}>← Wróć</button>
       </div>
 
       <div className="space-y-3">
         <div className="flex items-center gap-4 p-4 rounded-3xl" style={{ background: '#242424' }}>
-          <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center text-2xl font-bold flex-shrink-0"
-            style={{ background: 'rgba(232, 84, 26, 0.15)', color: '#E8541A' }}>
-            {profile.avatar_url ? (
-              <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              profile.username?.[0]?.toUpperCase()
-            )}
-          </div>
+          <Avatar username={profile.username} avatarUrl={profile.avatar_url} size={64} radius={16} />
           <div className="flex-1">
             <p className="font-bold text-lg text-white">{profile.username}</p>
             <p className="text-sm" style={{ color: '#aaaaaa' }}>{profile.full_name}</p>
             {profile.city && <p className="text-xs mt-0.5" style={{ color: '#888888' }}>📍 {profile.city}</p>}
           </div>
-          {id !== user.id && znajomyStatus?.status === 'zaakceptowany' && (
-            <Link href={'/wiadomosci/' + id}
-              className="px-4 py-2 rounded-2xl text-sm font-medium"
-              style={{ background: '#E8541A', color: 'white' }}>
-              Wiadomość
-            </Link>
-          )}
         </div>
+
+        {!jestemTymGraczem && (
+          <div className="flex gap-3">
+            {jestZnajomym && (
+              <button
+                onClick={() => router.push('/wiadomosci/' + id)}
+                className="flex-1 py-2.5 rounded-2xl text-sm font-medium"
+                style={{ background: '#E8541A', color: 'white' }}>
+                💬 Wiadomość
+              </button>
+            )}
+            {!jestZnajomym && !czekaNaAkceptacje && (
+              <button
+                onClick={handleDodaj}
+                disabled={dodawanie}
+                className="flex-1 py-2.5 rounded-2xl text-sm font-medium"
+                style={{ background: '#1a1a1a', color: '#E8541A', border: '1px solid #E8541A' }}>
+                {dodawanie ? 'Dodawanie...' : '+ Dodaj do znajomych'}
+              </button>
+            )}
+            {czekaNaAkceptacje && (
+              <div className="flex-1 py-2.5 rounded-2xl text-sm font-medium text-center"
+                style={{ background: '#1a1a1a', color: '#666666', border: '1px solid #333333' }}>
+                ⏳ Zaproszenie wysłane
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3">
           {profile.position && (
@@ -103,13 +150,13 @@ export default async function GraczPage({ params }: { params: Promise<{ id: stri
             <p className="text-xs mb-3" style={{ color: '#888888' }}>Social media</p>
             <div className="flex gap-3 flex-wrap">
               {profile.instagram && (
-                <span className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
+                <span className="px-3 py-2 rounded-2xl text-sm font-medium"
                   style={{ background: '#2a2a2a', color: '#E8541A' }}>
                   📷 {profile.instagram}
                 </span>
               )}
               {profile.snapchat && (
-                <span className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
+                <span className="px-3 py-2 rounded-2xl text-sm font-medium"
                   style={{ background: '#2a2a2a', color: '#FFFC00' }}>
                   👻 {profile.snapchat}
                 </span>

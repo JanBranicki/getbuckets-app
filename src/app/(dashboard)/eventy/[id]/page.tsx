@@ -44,6 +44,7 @@ export default function EventDetailPage() {
   const [gracze, setGracze] = useState<Gracz[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mojStatus, setMojStatus] = useState<string | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -64,11 +65,25 @@ export default function EventDetailPage() {
         .eq('event_id', id)
 
       if (ev) setEvent(ev)
-      if (gr) setGracze(gr)
+      if (gr) {
+        setGracze(gr)
+        const moj = gr.find((g: Gracz) => g.gracz_id === user.id)
+        if (moj) setMojStatus(moj.status)
+      }
       setLoading(false)
     }
     load()
   }, [id])
+
+  async function handleDolacz() {
+    if (!userId) return
+    await supabase.from('event_gracze').insert({
+      event_id: id,
+      gracz_id: userId,
+      status: 'oczekuje',
+    })
+    setMojStatus('oczekuje')
+  }
 
   async function handleStatus(graczId: string, status: 'zaakceptowany' | 'odrzucony') {
     await supabase.from('event_gracze').update({ status }).eq('id', graczId)
@@ -99,6 +114,7 @@ export default function EventDetailPage() {
   const jestemOrganizatorem = userId === event.organizator
   const zaakceptowani = gracze.filter(g => g.status === 'zaakceptowany')
   const oczekujacy = gracze.filter(g => g.status === 'oczekuje')
+  const pelny = zaakceptowani.length >= event.max_graczy
 
   return (
     <div className="p-4 max-w-lg mx-auto space-y-5 pb-20">
@@ -121,13 +137,50 @@ export default function EventDetailPage() {
           </button>
         )}
         <div className="flex gap-3 text-xs pt-1" style={{ color: '#888888' }}>
-          <span>🏀 {event.format}</span>
-          <span>🥅 {event.liczba_koszy === 1 ? '1 kosz' : '2 kosze'}</span>
+          <span>⚡ {event.format}</span>
+<span>🏀 {event.liczba_koszy === 1 ? '1 kosz' : '2 kosze'}</span>
           <span>👥 {zaakceptowani.length}/{event.max_graczy}</span>
           <span style={{ color: event.widocznosc === 'publiczny' ? '#22c55e' : '#888888' }}>{event.widocznosc}</span>
         </div>
         {event.notatki && <p className="text-sm pt-1" style={{ color: '#888888' }}>{event.notatki}</p>}
       </div>
+
+      {/* Przycisk dołącz */}
+      {!jestemOrganizatorem && (
+        <div>
+          {mojStatus === null && !pelny && (
+            <button onClick={handleDolacz}
+              className="w-full py-3 rounded-2xl text-sm font-semibold"
+              style={{ background: '#E8541A', color: 'white' }}>
+              🏀 Chcę grać
+            </button>
+          )}
+          {mojStatus === 'oczekuje' && (
+            <div className="w-full py-3 rounded-2xl text-sm font-semibold text-center"
+              style={{ background: '#1a1a1a', color: '#888888', border: '1px solid #333333' }}>
+              ⏳ Prośba wysłana — czekasz na akceptację
+            </div>
+          )}
+          {mojStatus === 'zaakceptowany' && (
+            <div className="w-full py-3 rounded-2xl text-sm font-semibold text-center"
+              style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.2)' }}>
+              ✓ Jesteś w składzie
+            </div>
+          )}
+          {mojStatus === 'odrzucony' && (
+            <div className="w-full py-3 rounded-2xl text-sm font-semibold text-center"
+              style={{ background: '#1a1a1a', color: '#666666', border: '1px solid #333333' }}>
+              ✗ Prośba odrzucona
+            </div>
+          )}
+          {mojStatus === null && pelny && (
+            <div className="w-full py-3 rounded-2xl text-sm font-semibold text-center"
+              style={{ background: '#1a1a1a', color: '#666666', border: '1px solid #333333' }}>
+              Komplet graczy
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="space-y-2">
         <h2 className="font-semibold text-xs uppercase tracking-widest" style={{ color: '#666666' }}>
