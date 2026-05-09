@@ -120,7 +120,8 @@ export default function ZnajomiPage() {
         {wyniki.length > 0 && (
           <div className="rounded-3xl overflow-hidden divide-y" style={{ background: '#1a1a1a' }}>
             {wyniki.map(p => (
-              <div key={p.id} className="flex items-center justify-between p-4">
+              <div key={p.id} className="flex items-center justify-between p-4 cursor-pointer"
+                onClick={() => router.push(`/gracz/${p.id}`)}>
                 <div className="flex items-center gap-3">
                   <Avatar username={p.username} avatarUrl={p.avatar_url} size={40} radius={12} />
                   <div>
@@ -128,7 +129,7 @@ export default function ZnajomiPage() {
                     <p className="text-xs" style={{ color: '#888888' }}>{p.city}{p.position && ` · ${p.position}`}</p>
                   </div>
                 </div>
-                <Button size="sm" onClick={() => handleZaprос(p.id)} className="rounded-2xl">Zaproś</Button>
+                <Button size="sm" onClick={(e) => { e.stopPropagation(); handleZaprос(p.id) }} className="rounded-2xl">Zaproś</Button>
               </div>
             ))}
           </div>
@@ -141,8 +142,10 @@ export default function ZnajomiPage() {
           <div className="rounded-3xl overflow-hidden divide-y" style={{ background: '#1a1a1a' }}>
             {zaproszenia.map(z => {
               const profil = getDrugiProfil(z, userId)
+              const drugieId = getDrugiId(z, userId)
               return (
-                <div key={z.id} className="flex items-center justify-between p-4">
+                <div key={z.id} className="flex items-center justify-between p-4 cursor-pointer"
+                  onClick={() => router.push(`/gracz/${drugieId}`)}>
                   <div className="flex items-center gap-3">
                     <Avatar username={profil?.username} avatarUrl={profil?.avatar_url} size={40} radius={12} />
                     <div>
@@ -151,9 +154,9 @@ export default function ZnajomiPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleAkceptuj(z.id)} className="rounded-2xl"
+                    <Button size="sm" onClick={(e) => { e.stopPropagation(); handleAkceptuj(z.id) }} className="rounded-2xl"
                       style={{ background: '#E8541A' }}>✓</Button>
-                    <Button size="sm" variant="outline" onClick={() => handleOdrzuc(z.id)} className="rounded-2xl">✗</Button>
+                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); handleOdrzuc(z.id) }} className="rounded-2xl">✗</Button>
                   </div>
                 </div>
               )
@@ -174,14 +177,15 @@ export default function ZnajomiPage() {
               const profil = getDrugiProfil(z, userId)
               const drugieId = getDrugiId(z, userId)
               return (
-                <div key={z.id} className="flex items-center gap-3 p-4">
+                <div key={z.id} className="flex items-center gap-3 p-4 cursor-pointer"
+                  onClick={() => router.push(`/gracz/${drugieId}`)}>
                   <Avatar username={profil?.username} avatarUrl={profil?.avatar_url} size={40} radius={12} />
                   <div className="flex-1">
                     <p className="font-semibold text-sm text-white">{profil?.username}</p>
                     <p className="text-xs" style={{ color: '#888888' }}>{profil?.city}{profil?.position && ` · ${profil.position}`}</p>
                   </div>
                   <button
-                    onClick={() => router.push(`/wiadomosci/${drugieId}`)}
+                    onClick={(e) => { e.stopPropagation(); router.push(`/wiadomosci/${drugieId}`) }}
                     className="w-9 h-9 rounded-2xl flex items-center justify-center"
                     style={{ background: '#2a2a2a' }}>
                     <MessageCircle size={16} style={{ color: '#888888' }} />

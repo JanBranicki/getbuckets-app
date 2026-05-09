@@ -1,0 +1,122 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+
+export default async function GraczPage({ params }: { params: { id: string } }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', params.id)
+    .single()
+
+  if (!profile) return <div className="p-8">Nie znaleziono gracza.</div>
+
+  const { data: znajomyStatus } = await supabase
+    .from('znajomi')
+    .select('status, nadawca')
+    .or(`and(nadawca.eq.${user.id},odbiorca.eq.${params.id}),and(nadawca.eq.${params.id},odbiorca.eq.${user.id})`)
+    .single()
+
+  return (
+    <div className="p-4 max-w-lg mx-auto pb-24">
+      <div className="flex items-center gap-3 mb-6">
+        <Link href="/znajomi" className="text-sm" style={{ color: '#888888' }}>← Wróć</Link>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-4 p-4 rounded-3xl" style={{ background: '#242424' }}>
+          <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center text-2xl font-bold flex-shrink-0"
+            style={{ background: 'rgba(232, 84, 26, 0.15)', color: '#E8541A' }}>
+            {profile.avatar_url ? (
+              <img src={profile.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              profile.username?.[0]?.toUpperCase()
+            )}
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-lg text-white">{profile.username}</p>
+            <p className="text-sm" style={{ color: '#aaaaaa' }}>{profile.full_name}</p>
+            {profile.city && <p className="text-xs mt-0.5" style={{ color: '#888888' }}>📍 {profile.city}</p>}
+          </div>
+          {params.id !== user.id && znajomyStatus?.status === 'zaakceptowany' && (
+            <Link href={'/wiadomosci/' + params.id}
+              className="px-4 py-2 rounded-2xl text-sm font-medium"
+              style={{ background: '#E8541A', color: 'white' }}>
+              Wiadomość
+            </Link>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {profile.position && (
+            <div className="p-4 rounded-3xl" style={{ background: '#242424' }}>
+              <p className="text-xs mb-1" style={{ color: '#888888' }}>Pozycja</p>
+              <p className="text-base font-bold" style={{ color: '#E8541A' }}>{profile.position}</p>
+            </div>
+          )}
+          {profile.wiek && (
+            <div className="p-4 rounded-3xl" style={{ background: '#242424' }}>
+              <p className="text-xs mb-1" style={{ color: '#888888' }}>Wiek</p>
+              <p className="text-base font-bold text-white">{profile.wiek} lat</p>
+            </div>
+          )}
+          {profile.wzrost && (
+            <div className="p-4 rounded-3xl" style={{ background: '#242424' }}>
+              <p className="text-xs mb-1" style={{ color: '#888888' }}>Wzrost</p>
+              <p className="text-base font-bold text-white">{profile.wzrost} cm</p>
+            </div>
+          )}
+          {profile.reka && (
+            <div className="p-4 rounded-3xl" style={{ background: '#242424' }}>
+              <p className="text-xs mb-1" style={{ color: '#888888' }}>Ręka</p>
+              <p className="text-base font-bold text-white">{profile.reka}</p>
+            </div>
+          )}
+          {profile.druzyna && (
+            <div className="p-4 rounded-3xl" style={{ background: '#242424' }}>
+              <p className="text-xs mb-1" style={{ color: '#888888' }}>Drużyna</p>
+              <p className="text-base font-bold text-white">{profile.druzyna}</p>
+            </div>
+          )}
+          {profile.liga && (
+            <div className="p-4 rounded-3xl col-span-2" style={{ background: '#242424' }}>
+              <p className="text-xs mb-1" style={{ color: '#888888' }}>Liga</p>
+              <p className="text-base font-bold text-white">{profile.liga}</p>
+            </div>
+          )}
+        </div>
+
+        {profile.bio && (
+          <div className="p-4 rounded-3xl" style={{ background: '#242424' }}>
+            <p className="text-xs mb-2" style={{ color: '#888888' }}>Bio</p>
+            <p className="text-base text-white">{profile.bio}</p>
+          </div>
+        )}
+
+        {(profile.instagram || profile.snapchat) && (
+          <div className="p-4 rounded-3xl" style={{ background: '#242424' }}>
+            <p className="text-xs mb-3" style={{ color: '#888888' }}>Social media</p>
+            <div className="flex gap-3 flex-wrap">
+              {profile.instagram && (
+                <span className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
+                  style={{ background: '#2a2a2a', color: '#E8541A' }}>
+                  📷 {profile.instagram}
+                </span>
+              )}
+              {profile.snapchat && (
+                <span className="flex items-center gap-2 px-3 py-2 rounded-2xl text-sm font-medium"
+                  style={{ background: '#2a2a2a', color: '#FFFC00' }}>
+                  👻 {profile.snapchat}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
