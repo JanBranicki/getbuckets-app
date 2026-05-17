@@ -7,7 +7,21 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient()
-    await supabase.auth.exchangeCodeForSession(code)
+    const { data: { user } } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single()
+
+      const isNewUser = !profile?.username
+
+      return NextResponse.redirect(
+        `${origin}${isNewUser ? '/onboarding' : '/dashboard'}`
+      )
+    }
   }
 
   return NextResponse.redirect(`${origin}/dashboard`)
